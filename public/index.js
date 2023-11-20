@@ -329,25 +329,27 @@ function animateSkyColor(light) {
 function animateInteriorLights(light) {
   const lights = [];
 
-  gltfScene.traverse(function (node) {
-    if (node.isLight) {
-      lights.push(node);
-    }
-  });
+  if (gltfScene) {
+    gltfScene.traverse(function (node) {
+      if (node.isLight) {
+        lights.push(node);
+      }
+    });
 
-  if (light.position.y < 13) {
-    lights.forEach((light, index) => {
-      setTimeout(() => {
-        light.intensity = 1.6;
-      }, getRandomNumber(600, 3200) * index);
-    });
-    // console.log("position under 13");
-  } else {
-    lights.forEach((light) => {
-      light.intensity = 0;
-    });
+    if (light.position.y < 13) {
+      lights.forEach((light, index) => {
+        setTimeout(() => {
+          light.intensity = 1.6;
+        }, getRandomNumber(600, 3200) * index);
+      });
+      // console.log("position under 13");
+    } else {
+      lights.forEach((light) => {
+        light.intensity = 0;
+      });
+    }
+    // console.log(light.position.y);
   }
-  // console.log(light.position.y);
 }
 
 function getRandomNumber(min, max) {
