@@ -74,9 +74,10 @@ const houseGroup = new THREE.Group();
 var gltfScene;
 const gltfLoader = new GLTFLoader();
 gltfLoader.load(
-  "solar-house.glb",
+  "./solar-house.glb",
   function (gltf) {
     gltfScene = gltf.scene;
+    // console.log("loaded");
     gltf.scene.traverse(function (node) {
       if (node.isMesh) {
         node.castShadow = true;
@@ -146,12 +147,12 @@ const gradientTexture = new THREE.CanvasTexture(
   createVerticalGradientTexture()
 );
 
-const starsTexture = textureLoader.load("stars-texture.jpg"); // Replace 'path_to_your_image.jpg' with your image path
-const starsMaterial = new THREE.MeshBasicMaterial({
-  map: starsTexture,
-  side: THREE.DoubleSide,
-  transparent: true,
-});
+// const starsTexture = textureLoader.load("stars-texture.jpg"); // Replace 'path_to_your_image.jpg' with your image path
+// const starsMaterial = new THREE.MeshBasicMaterial({
+//   map: starsTexture,
+//   side: THREE.DoubleSide,
+//   transparent: true,
+// });
 
 const skyPlaneMaterial = new THREE.MeshBasicMaterial({ map: gradientTexture });
 
@@ -170,8 +171,8 @@ const skyPlane = new THREE.Mesh(skyPlaneGeo, skyPlaneMaterial);
 skyPlane.position.set(0, 137.5, -67);
 // skyPlane.rotation.y = Math.PI;
 
-const starsPlaneMesh = new THREE.Mesh(starsPlaneGeo, starsMaterial);
-starsPlaneMesh.position.set(48, 17, -61);
+// const starsPlaneMesh = new THREE.Mesh(starsPlaneGeo, starsMaterial);
+// starsPlaneMesh.position.set(48, 17, -61);
 
 scene.add(sphere, shadowBox, skyPlane);
 // scene.add(skyPlane);
@@ -280,14 +281,14 @@ function dayCycle(mousepos) {
     skyPlane.position.y +=
       animationSpeed * (skyPosNormalizedValue - skyPlane.position.y);
 
-    const starsPosNormalizedValue = mapRange(mousepos, 0.2, 100, 0.5, 0);
-    starsPlaneMesh.material.opacity +=
-      animationSpeed *
-      (starsPosNormalizedValue - starsPlaneMesh.material.opacity);
+    // const starsPosNormalizedValue = mapRange(mousepos, 0.2, 100, 0.5, 0);
+    // starsPlaneMesh.material.opacity +=
+    //   animationSpeed *
+    //   (starsPosNormalizedValue - starsPlaneMesh.material.opacity);
 
-    const starsRotNormalizedValue = mapRange(mousepos, 0.2, 100, 1.5, 0);
-    starsPlaneMesh.rotation.z +=
-      animationSpeed * (starsRotNormalizedValue - starsPlaneMesh.rotation.z);
+    // const starsRotNormalizedValue = mapRange(mousepos, 0.2, 100, 1.5, 0);
+    // starsPlaneMesh.rotation.z +=
+    //   animationSpeed * (starsRotNormalizedValue - starsPlaneMesh.rotation.z);
 
     // console.log(
     //   "moon intensity: ",
@@ -323,35 +324,33 @@ function animateSkyColor(light) {
 
   light.color.setHSL(hue, 1, lightness); // Set the HSL values to the sunlight color
   // console.log("lightness: ", lightness);
+}
 
+function animateInteriorLights(light) {
   const lights = [];
-  const lightIntensities = [];
+
   gltfScene.traverse(function (node) {
     if (node.isLight) {
       lights.push(node);
-      lightIntensities.push(node.intensity);
     }
   });
 
   if (light.position.y < 13) {
     lights.forEach((light, index) => {
       setTimeout(() => {
-        light.intensity = 1.6; // Modify intensity based on the condition
-      }, getRandomNumber(350, 1200) * index); // Adjust the delay (e.g., 100 milliseconds) for the stagger effect
+        light.intensity = 1.6;
+      }, getRandomNumber(600, 3200) * index);
     });
     // console.log("position under 13");
   } else {
     lights.forEach((light) => {
-      light.intensity = 0; // Reset intensity based on the condition
+      light.intensity = 0;
     });
   }
   // console.log(light.position.y);
 }
 
 function getRandomNumber(min, max) {
-  // Use Math.random() to generate a random decimal between 0 and 1
-  // Multiply by (max - min + 1) to extend the range
-  // Use Math.floor() to round down to the nearest whole number
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
@@ -383,6 +382,7 @@ const animate = () => {
   dayCycle(targetY);
   orbitCamera(targetX, targetY);
   animateSkyColor(sunObject);
+  animateInteriorLights(sunObject);
 
   // Render the scene
   renderer.render(scene, camera);

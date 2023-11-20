@@ -1,0 +1,9 @@
+
+#canvas-container {
+    width: 100%;
+    /* Set your desired width */
+    height: 100vh;
+    /* Set your desired height */
+    margin: 0 auto;
+    /* Center the container */
+}
