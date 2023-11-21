@@ -23,6 +23,8 @@ let targetY = 0;
 let windowHalfX = window.innerWidth / 2;
 let windowHalfY = window.innerHeight / 2;
 
+var lightsOut = true;
+
 // Create a scene
 const scene = new THREE.Scene();
 
@@ -31,10 +33,11 @@ const camera = new THREE.PerspectiveCamera(24, 1, 0.1, 2000); // Aspect ratio se
 
 // Position the camera
 
-camera.position.set(0, 3, 12);
+camera.position.set(0, 4, 14);
+camera.rotation.set(-0.1, 0.1, 0);
 
 const orbitGroup = new THREE.Group();
-orbitGroup.position.set(-2.5, 39.5, 7.5);
+// orbitGroup.position.set(-2.5, 39.5, 7.5);
 scene.add(orbitGroup);
 orbitGroup.add(camera);
 
@@ -64,7 +67,7 @@ onLoad();
 
 // GEOMETRY
 
-const groundSphereGeo = new THREE.SphereGeometry(40, 32, 128);
+const groundCylinderGeo = new THREE.CylinderGeometry(40, 40, 3, 128);
 const shadowBoxGeo = new THREE.BoxGeometry(60, 2, 60);
 const houseCubeGeo = new THREE.BoxGeometry(1, 1, 1);
 const skyPlaneGeo = new THREE.PlaneGeometry(150, 350); // Adjust the size as needed
@@ -96,7 +99,7 @@ gltfLoader.load(
 
     houseGroup.add(gltfScene);
     houseGroup.scale.set(0.2, 0.2, 0.2);
-    houseGroup.position.set(0, 32, 2);
+    houseGroup.position.set(0, 2, 0);
 
     scene.add(houseGroup);
   },
@@ -156,15 +159,13 @@ const gradientTexture = new THREE.CanvasTexture(
 
 const skyPlaneMaterial = new THREE.MeshBasicMaterial({ map: gradientTexture });
 
-const sphere = new THREE.Mesh(groundSphereGeo, whiteMat);
-const shadowBox = new THREE.Mesh(shadowBoxGeo, whiteMat);
-sphere.castShadow = true; // Enable shadow reception
-sphere.receiveShadow = true; // Enable shadow reception
-shadowBox.castShadow = true; // Enable shadow reception
-shadowBox.position.set(-40, 30, 0);
+const cylinderGround = new THREE.Mesh(groundCylinderGeo, whiteMat);
+
+cylinderGround.castShadow = true; // Enable shadow reception
+cylinderGround.receiveShadow = true; // Enable shadow reception
 
 const house = new THREE.Mesh(houseCubeGeo, whiteMat);
-house.position.set(-2.5, 39.5, 7.5);
+// house.position.set(-2.5, 39.5, 7.5);
 house.castShadow = true; // Enable shadow  casting
 
 const skyPlane = new THREE.Mesh(skyPlaneGeo, skyPlaneMaterial);
@@ -174,7 +175,7 @@ skyPlane.position.set(0, 137.5, -67);
 // const starsPlaneMesh = new THREE.Mesh(starsPlaneGeo, starsMaterial);
 // starsPlaneMesh.position.set(48, 17, -61);
 
-scene.add(sphere, shadowBox, skyPlane);
+scene.add(cylinderGround, skyPlane);
 // scene.add(skyPlane);
 
 // LIGHTS
@@ -202,7 +203,7 @@ sunObject.shadow.camera.left = -10;
 sunObject.shadow.camera.right = 10;
 sunObject.shadow.camera.top = -10;
 sunObject.shadow.camera.bottom = 50;
-sunObject.shadow.bias = -0.005;
+sunObject.shadow.bias = -0.0005;
 
 // MOON
 
@@ -219,6 +220,7 @@ moonObject.shadow.camera.left = -10;
 moonObject.shadow.camera.right = 10;
 moonObject.shadow.camera.top = -10;
 moonObject.shadow.camera.bottom = 30;
+moonObject.shadow.bias = -0.0005;
 
 sunObject.target = houseGroup;
 moonObject.target = houseGroup;
@@ -271,13 +273,14 @@ function dayCycle(mousepos) {
 
     moonObject.position.y +=
       animationSpeed * (-mousepos + 70 - moonObject.position.y);
+    const moonIntensityNormalizedValue = mapRange(mousepos, 0.2, 100, 0.5, 0);
     moonObject.intensity +=
-      animationSpeed * (-mousepos / 100 + 0.5 - moonObject.intensity);
+      animationSpeed * (moonIntensityNormalizedValue - moonObject.intensity);
 
     skyLight.intensity +=
       animationSpeed * (mousepos / 150 - skyLight.intensity);
 
-    const skyPosNormalizedValue = mapRange(mousepos, 0.2, 100, -110, 185);
+    const skyPosNormalizedValue = mapRange(mousepos, 0.2, 100, -110, 170);
     skyPlane.position.y +=
       animationSpeed * (skyPosNormalizedValue - skyPlane.position.y);
 
@@ -290,18 +293,18 @@ function dayCycle(mousepos) {
     // starsPlaneMesh.rotation.z +=
     //   animationSpeed * (starsRotNormalizedValue - starsPlaneMesh.rotation.z);
 
-    // console.log(
-    //   "moon intensity: ",
-    //   moonObject.intensity,
-    //   "moon position: ",
-    //   moonObject.position.y,
-    //   "sun intensity: ",
-    //   sunObject.intensity,
-    //   "sun position: ",
-    //   sunObject.position.y,
-    //   "skylight intensity: ",
-    //   skyLight.intensity
-    // );
+    console.log(
+      "moon intensity: ",
+      moonObject.intensity,
+      "moon position: ",
+      moonObject.position.y,
+      "sun intensity: ",
+      sunObject.intensity,
+      "sun position: ",
+      sunObject.position.y,
+      "skylight intensity: ",
+      skyLight.intensity
+    );
     // console.log("skyplane position: ", skyPlane.position.y, mousepos);
     // console.log("stars opacity: ", starsPlaneMesh.material.opacity);
   }
@@ -336,17 +339,20 @@ function animateInteriorLights(light) {
       }
     });
 
-    if (light.position.y < 13) {
+    if (light.position.y < 13 && lightsOut) {
       lights.forEach((light, index) => {
         setTimeout(() => {
           light.intensity = 1.6;
-        }, getRandomNumber(600, 3200) * index);
+        }, getRandomNumber(600, 3200));
+        console.log(getRandomNumber(600, 3200), "set light intensity");
       });
-      // console.log("position under 13");
-    } else {
+      lightsOut = false;
+      console.log(lightsOut);
+    } else if (!lightsOut && light.position.y >= 13) {
       lights.forEach((light) => {
         light.intensity = 0;
       });
+      lightsOut = true;
     }
     // console.log(light.position.y);
   }
@@ -357,7 +363,7 @@ function getRandomNumber(min, max) {
 }
 
 function orbitCamera(mouseposX, mouseposY) {
-  const cameraXOrbitNormalizedValue = mapRange(mouseposX, 0.2, 100, 0.1, -0.3);
+  const cameraXOrbitNormalizedValue = mapRange(mouseposX, 0.2, 100, 0.08, -0.5);
   orbitGroup.rotation.y +=
     (animationSpeed / 3) *
     (cameraXOrbitNormalizedValue - orbitGroup.rotation.y);
@@ -377,7 +383,6 @@ function orbitCamera(mouseposX, mouseposY) {
 const animate = () => {
   requestAnimationFrame(animate);
 
-  // Add your animations or interactions here, if any
   targetX = calcMouseX;
   targetY = calcMouseY;
 
