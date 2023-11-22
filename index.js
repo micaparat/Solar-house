@@ -271,11 +271,14 @@ function dayCycle(mousepos) {
     sunObject.intensity +=
       animationSpeed * (mousepos / 100 - sunObject.intensity);
 
+    const moonPositionNormalizedValue = mapRange(mousepos, 0.2, 50, 60, -60);
     moonObject.position.y +=
-      animationSpeed * (-mousepos + 70 - moonObject.position.y);
-    const moonIntensityNormalizedValue = mapRange(mousepos, 0.2, 100, 0.5, 0);
+      animationSpeed * (moonPositionNormalizedValue - moonObject.position.y);
+    const moonIntensityNormalizedValue = mapRange(mousepos, 0.2, 50, 0.2, 0);
     moonObject.intensity +=
-      animationSpeed * (moonIntensityNormalizedValue - moonObject.intensity);
+      animationSpeed *
+      2 *
+      (moonIntensityNormalizedValue - moonObject.intensity);
 
     skyLight.intensity +=
       animationSpeed * (mousepos / 150 - skyLight.intensity);
